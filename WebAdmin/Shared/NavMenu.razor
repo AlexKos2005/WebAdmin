@@ -8,25 +8,25 @@
 </div>
 
 
-    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-        <ul class="nav flex-column">
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="oi oi-home" aria-hidden="true"></span> Home
-                </NavLink>
-            </li>
-          
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="accounts">
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> Accounts
-                </NavLink>
-            </li>
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="servicecheck">
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> ServiceCheck
-                </NavLink>
-            </li>
-               <li class="nav-item px-3">
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+         <NavLink class="nav-link" href="index" @onclick="ClearUserToken">
+             <span class="oi oi-home" aria-hidden="true"></span> Exit
+         </NavLink>
+     </li>
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="accounts">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Accounts
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="servicecheck">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> ServiceCheck
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
             <NavLink class="nav-link" href="servicepermissions">
                 <span class="oi oi-list-rich" aria-hidden="true"></span> ServicePermissions
             </NavLink>
@@ -36,8 +36,8 @@
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Token
             </NavLink>
         </li>
-        </ul>
-    </div>
+    </ul>
+</div>
 
 
 
@@ -49,5 +49,10 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void ClearUserToken()
+    {
+        UserToken.Jwt = null;
     }
 }

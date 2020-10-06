@@ -1,0 +1,15 @@
+﻿@page "/"
+@inject NavigationManager Navigate
+
+<h3>Home</h3>
+
+
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigate.NavigateTo($"/index");
+    }
+
+}

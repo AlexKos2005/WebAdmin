@@ -5,49 +5,50 @@
 @using System.Net.Http.Headers
 @inject HttpClient Http
 @inject NavigationManager Navigate
+@inject WebAdmin.Dto.AppSettingsDto AppSettings
 
 <h3>CheckService</h3>
 
 <div class="st1">
     <div style="text-align:center">
-        
-            <h3>Status: @_checkMessage</h3>
-      
 
-            <input type="button" @onclick="Check" class="btn btn-primary" value="Check CwAuth Service" />
+        <h3>Status: @_checkMessage</h3>
+
+
+        <input type="button" @onclick="Check" class="btn btn-primary" value="Check CwAuth Service" />
     </div>
 </div>
 
-    @code {
-        private string _checkMessage;
+@code {
+    private string _checkMessage;
 
-        private async Task Check()
+    private async Task Check()
+    {
+        try
         {
-            try
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = new HttpMethod("GET");
+            httpRequestMessage.RequestUri = new Uri($"{AppSettings.ConnectionString}"+"api/Check");
+
+
+            var response = await Http.SendAsync(httpRequestMessage);
+            var responseStatusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (responseStatusCode.ToString() == "OK")
             {
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
-                httpRequestMessage.Method = new HttpMethod("GET");
-                httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Check");
-
-
-                var response = await Http.SendAsync(httpRequestMessage);
-                var responseStatusCode = response.StatusCode;
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (responseStatusCode.ToString() == "OK")
-                {
-                    _checkMessage = "CwAuthorizationService is working successfuly";
-                }
-                else
-                {
-                    _checkMessage = "Check the CwAuthorizationService is bad.";
-                }
-
+                _checkMessage = "CwAuthorizationService is working successfuly";
             }
-            catch (Exception e)
-
+            else
             {
-                _checkMessage = e.Message;
+                _checkMessage = "Check the CwAuthorizationService is bad.";
             }
+
+        }
+        catch (Exception e)
+
+        {
+            _checkMessage = e.Message;
         }
     }
+}

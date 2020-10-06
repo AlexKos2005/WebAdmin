@@ -7,6 +7,7 @@
 @inject NavigationManager Navigate
 @inject AccountDto CurrentAccount
 @inject CwAuthorizationService.Dto.TokenDto UserToken
+@inject WebAdmin.Dto.AppSettingsDto AppSettings
 
 <div class="st1">
     <table class="table">
@@ -22,7 +23,7 @@
             <td><input type="text" @bind="@CurrentAccount.Role" placeholder="@CurrentAccount.Role" /></td>
             <td><input type="text" @bind="@CurrentAccount.Description" placeholder="@CurrentAccount.Description" /></td>
         </tr>
-        </table>
+    </table>
 </div>
 <button class="btn btn-primary" @onclick="EditAccount">Save changes</button>
 <div style="text-align:center">
@@ -41,7 +42,7 @@
             string account = JsonConvert.SerializeObject(CurrentAccount);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
             httpRequestMessage.Method = new HttpMethod("PATCH");
-            httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Account");
+            httpRequestMessage.RequestUri = new Uri($"{AppSettings.ConnectionString}"+"api/Account");
             httpRequestMessage.Headers.Add("Authorization", "Bearer " + UserToken.Jwt);
             httpRequestMessage.Content = new StringContent(account);
             httpRequestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");

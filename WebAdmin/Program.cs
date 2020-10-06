@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using CwAuthorizationService.Dto;
 using CwAuthorizationService.Models;
 using Microsoft.AspNetCore.Components;
+using WebAdmin.Dto;
 
 namespace WebAdmin
 {
@@ -17,18 +18,21 @@ namespace WebAdmin
     {
         public static async Task Main(string[] args)
         {
+      
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-            builder.Services.AddSingleton<HttpClient>();
-
             builder.Services.AddSingleton<TokenDto>();
+
+            builder.Services.AddSingleton<AppSettingsDto>();
 
             builder.Services.AddSingleton<AccountDto>();
 
             await builder.Build().RunAsync();
         }
+
+        
     }
 }

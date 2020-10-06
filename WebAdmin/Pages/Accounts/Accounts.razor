@@ -7,6 +7,7 @@
 @inject NavigationManager Navigate
 @inject CwAuthorizationService.Dto.TokenDto UserToken
 @inject AccountDto CurrentAccount
+@inject WebAdmin.Dto.AppSettingsDto AppSettings
 <!--<div class="sidebar">
     <NavMenu />
 </div>-->
@@ -84,9 +85,9 @@
             string account = JsonConvert.SerializeObject(CurrentAccount);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
             httpRequestMessage.Method = new HttpMethod("DELETE");
-            httpRequestMessage.RequestUri = new Uri($"http://localhost:6060/api/Account/id={CurrentAccount.Id}");
+            httpRequestMessage.RequestUri = new Uri($"{AppSettings.ConnectionString}"+"api/Account/id="+$"{CurrentAccount.Id}");
             httpRequestMessage.Headers.Add("Authorization", "Bearer " + UserToken.Jwt);
-          
+
             var response = await Http.SendAsync(httpRequestMessage);
             var responseStatusCode = response.StatusCode;
             var responseBody = await response.Content.ReadAsStringAsync();

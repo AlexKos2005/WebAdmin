@@ -1,18 +1,20 @@
-﻿@page "/"
+﻿@page "/index"
 @using CwAuthorizationService.Dto
 @using Brotli
 @using CwAuthorizationService.Models
 @using System.Net.Http 
 @using Newtonsoft.Json
 @using System.Net.Http.Headers;
+@using System.IO;
 @inject HttpClient Http
 @inject NavigationManager Navigate
 @inject TokenDto UserToken
+@inject WebAdmin.Dto.AppSettingsDto AppSettings
 
 <div class="st1">
     <h1>Вход в систему</h1>
-    <br />
 
+    <br />
 
     <div class="st11">
         <input type="text" @bind=@signIn.Name placeholder="Login" />
@@ -27,55 +29,68 @@
         <span style="font-size:medium">@UserToken.Jwt</span>
     </div>
     <div class="st11">
-        <span style="font-size:medium; color:red">@Message</span>
+        <span style="font-size:medium; color:red">@_message</span>
     </div>
+    
 </div>
 @code {
     private int currentCount = 0;
-    private string Message = null;
+    private string _fileSettings = "appsettings.json";
+    private string _message = null;
     private TokenDto token = new TokenDto();
+
     private SignIn signIn = new SignIn()
     {
         Name = "Adm",
         Password = "Adm"
     };
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
+        UserToken.Jwt = null;
 
-        return base.OnInitializedAsync();
     }
 
     private async Task SendRequest()
     {
-        string sign = JsonConvert.SerializeObject(signIn);
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
-        httpRequestMessage.Method = new HttpMethod("POST");
-        httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Token/signin");
-        httpRequestMessage.Content = new StringContent(sign);
-        httpRequestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-        var response = await Http.SendAsync(httpRequestMessage);
-        var responseStatusCode = response.StatusCode;
-        var responseBody = await response.Content.ReadAsStringAsync();
-
-        if (responseStatusCode.ToString() == "OK")
+        try
         {
-            var result = JsonConvert.DeserializeObject<TokenDto>(responseBody);
-            UserToken.Jwt = result.Jwt;
-            UserToken.Account = result.Account;
-            UserToken.Expires = result.Expires;
-            UserToken.RefreshTokenId = result.RefreshTokenId;
-            Navigate.NavigateTo("/accounts");
-        }
-        else
-        {
-            UserToken.Jwt = "";
-            Message = "Ошибка ввода логина или пароля";
-        }
+            var set = await Http.GetFromJsonAsync<WebAdmin.Dto.AppSettingsDto>("sample-data/settings.json");
+            AppSettings.ConnectionString = set.ConnectionString;
+            string sign = JsonConvert.SerializeObject(signIn);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = new HttpMethod("POST");
+            httpRequestMessage.RequestUri = new Uri($"{AppSettings.ConnectionString}" + "api/Token/signin");
+            httpRequestMessage.Content = new StringContent(sign);
+            httpRequestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+            var response = await Http.SendAsync(httpRequestMessage);
+            var responseStatusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (responseStatusCode.ToString() == "OK")
+            {
+                var result = JsonConvert.DeserializeObject<TokenDto>(responseBody);
+                UserToken.Jwt = result.Jwt;
+                UserToken.Account = result.Account;
+                UserToken.Expires = result.Expires;
+                UserToken.RefreshTokenId = result.RefreshTokenId;
+                Navigate.NavigateTo("/accounts");
+            }
+            else
+            {
+                UserToken.Jwt = "";
+                _message = "Ошибка ввода логина или пароля";
+            }
+        }
+        catch (Exception e)
+        {
+            _message = e.Message;
+        }
 
 
 
     }
+
+
 }
