@@ -1,0 +1,71 @@
+﻿@page "/accountedit"
+@using CwAuthorizationService.Dto
+@using CwAuthorizationService.Models
+@using Newtonsoft.Json
+@using System.Net.Http.Headers
+@inject HttpClient Http
+@inject NavigationManager Navigate
+@inject AccountDto CurrentAccount
+@inject CwAuthorizationService.Dto.TokenDto UserToken
+
+<div class="st1">
+    <table class="table">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><input type="text" @bind="@CurrentAccount.Id" placeholder="@CurrentAccount.Id" /></td>
+            <td><input type="text" @bind="@CurrentAccount.Name" placeholder="@CurrentAccount.Name" /></td>
+            <td><input type="text" @bind="@CurrentAccount.Role" placeholder="@CurrentAccount.Role" /></td>
+            <td><input type="text" @bind="@CurrentAccount.Description" placeholder="@CurrentAccount.Description" /></td>
+        </tr>
+        </table>
+</div>
+<button class="btn btn-primary" @onclick="EditAccount">Save changes</button>
+<div style="text-align:center">
+    <p>@_message</p>
+</div>
+
+@code {
+    private string _message;
+
+    private async Task EditAccount()
+    {
+
+        try
+        {
+
+            string account = JsonConvert.SerializeObject(CurrentAccount);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = new HttpMethod("PATCH");
+            httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Account");
+            httpRequestMessage.Headers.Add("Authorization", "Bearer " + UserToken.Jwt);
+            httpRequestMessage.Content = new StringContent(account);
+            httpRequestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+
+            var response = await Http.SendAsync(httpRequestMessage);
+            var responseStatusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (responseStatusCode == System.Net.HttpStatusCode.OK)
+            {
+                _message = "Account is Updated successfuly!";
+            }
+            else
+            {
+                _message = responseStatusCode.ToString();
+            }
+        }
+        catch (Exception e)
+        {
+            _message = e.Message;
+        }
+
+
+    }
+
+}

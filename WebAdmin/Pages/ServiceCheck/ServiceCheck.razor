@@ -1,0 +1,53 @@
+﻿@page "/servicecheck"
+@using CwAuthorizationService.Dto
+@using CwAuthorizationService.Models
+@using Newtonsoft.Json
+@using System.Net.Http.Headers
+@inject HttpClient Http
+@inject NavigationManager Navigate
+
+<h3>CheckService</h3>
+
+<div class="st1">
+    <div style="text-align:center">
+        
+            <h3>Status: @_checkMessage</h3>
+      
+
+            <input type="button" @onclick="Check" class="btn btn-primary" value="Check CwAuth Service" />
+    </div>
+</div>
+
+    @code {
+        private string _checkMessage;
+
+        private async Task Check()
+        {
+            try
+            {
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+                httpRequestMessage.Method = new HttpMethod("GET");
+                httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Check");
+
+
+                var response = await Http.SendAsync(httpRequestMessage);
+                var responseStatusCode = response.StatusCode;
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (responseStatusCode.ToString() == "OK")
+                {
+                    _checkMessage = "CwAuthorizationService is working successfuly";
+                }
+                else
+                {
+                    _checkMessage = "Check the CwAuthorizationService is bad.";
+                }
+
+            }
+            catch (Exception e)
+
+            {
+                _checkMessage = e.Message;
+            }
+        }
+    }

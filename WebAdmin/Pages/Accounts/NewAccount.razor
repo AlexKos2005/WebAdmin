@@ -1,0 +1,78 @@
+﻿@page "/newaccount"
+@using CwAuthorizationService.Dto
+@using CwAuthorizationService.Models
+@using Newtonsoft.Json
+@using System.Net.Http.Headers; 
+@inject HttpClient Http
+@inject NavigationManager Navigate
+@inject CwAuthorizationService.Dto.TokenDto UserToken
+<h3>Adding New Account</h3>
+
+<div class="st1">
+    <table class="table">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><input type="text" @bind="@createAccount.Name" placeholder="Name" /></td>
+            <td><input type="text" @bind="@createAccount.Password" placeholder="Password" /></td>
+            <td><input type="text" @bind="@createAccount.Role" placeholder="Role" /></td>
+            <td><input type="text" @bind="@createAccount.Description" placeholder="Description" /></td>
+        </tr>
+        </table>
+</div>
+<button class="btn btn-primary" @onclick="PutNewAccount">Put new account </button>
+<div style="text-align:center">
+    <p>@_message</p>
+</div>
+
+@code {
+
+    private string _message;
+
+    public CreateAccountDto createAccount { get; set; } = new CreateAccountDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+
+    private async Task PutNewAccount()
+    {
+
+        try
+        {
+
+            string account = JsonConvert.SerializeObject(createAccount);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = new HttpMethod("PUT");
+            httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Account");
+            httpRequestMessage.Headers.Add("Authorization", "Bearer " + UserToken.Jwt);
+            httpRequestMessage.Content = new StringContent(account);
+            httpRequestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+
+            var response = await Http.SendAsync(httpRequestMessage);
+            var responseStatusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (responseStatusCode == System.Net.HttpStatusCode.OK)
+            {
+                _message = "Account is added successfuly!";
+            }
+            else
+            {
+                _message = responseStatusCode.ToString();
+            }
+        }
+        catch (Exception e)
+        {
+            _message = e.Message;
+        }
+
+
+    }
+}

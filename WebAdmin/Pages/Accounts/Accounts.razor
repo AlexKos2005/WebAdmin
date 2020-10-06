@@ -1,0 +1,145 @@
+﻿@page "/accounts"
+@using CwAuthorizationService.Dto
+@using CwAuthorizationService.Models
+@using Newtonsoft.Json
+@using System.Net.Http.Headers
+@inject HttpClient Http
+@inject NavigationManager Navigate
+@inject CwAuthorizationService.Dto.TokenDto UserToken
+@inject AccountDto CurrentAccount
+<!--<div class="sidebar">
+    <NavMenu />
+</div>-->
+
+<div class="st1">
+    <h2>Accounts</h2>
+    @if (accountsDto != null)
+    {
+        <table class="table">
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Description</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            @foreach (var account in accountsDto)
+            {
+                <tr>
+                    <td><p>@account.Id</p></td>
+                    <td><p>@account.Name</p></td>
+                    <td><p>@account.Role</p></td>
+                    <td><p>@account.Description</p></td>
+                    <td><button class="btn btn-primary" @onclick="@(()=>GoToAccountEditPage(account))">Edit</button></td>
+                    <td><button class="btn btn-primary" @onclick="@(()=>DeleteAccount(account))">Delete</button></td>
+                </tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p><em>Loading...</em></p>
+    }
+</div>
+<button class="btn btn-primary" @onclick="GoToNewAccountPage">Add New Account</button>
+<button class="btn btn-primary" @onclick="GetAccounts">Update Account's List</button>
+<div style="text-align:center">
+    <p>@_message</p>
+</div>
+
+@code {
+    private string _message;
+    private TokenDto token = new TokenDto();
+    private AccountDto[] accountsDto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await GetAccounts();
+        accountsDto = result.ToArray();
+    }
+
+    private void GoToNewAccountPage()
+    {
+        Navigate.NavigateTo($"/newaccount");
+    }
+
+    private void GoToAccountEditPage(AccountDto accountDto)
+    {
+        CurrentAccount.Id = accountDto.Id;
+        CurrentAccount.Name = accountDto.Name;
+        CurrentAccount.Role = accountDto.Role;
+        CurrentAccount.Description = accountDto.Description;
+        Navigate.NavigateTo($"/accountedit");
+    }
+
+    private async Task DeleteAccount(AccountDto accountDto)
+    {
+        try
+        {
+            CurrentAccount.Id = accountDto.Id;
+            CurrentAccount.Name = accountDto.Name;
+            CurrentAccount.Role = accountDto.Role;
+            CurrentAccount.Description = accountDto.Description;
+            string account = JsonConvert.SerializeObject(CurrentAccount);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = new HttpMethod("DELETE");
+            httpRequestMessage.RequestUri = new Uri($"http://localhost:6060/api/Account/id={CurrentAccount.Id}");
+            httpRequestMessage.Headers.Add("Authorization", "Bearer " + UserToken.Jwt);
+          
+            var response = await Http.SendAsync(httpRequestMessage);
+            var responseStatusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (responseStatusCode == System.Net.HttpStatusCode.OK)
+            {
+                _message = "Account is Deleted successfuly!";
+            }
+            else
+            {
+                _message = responseStatusCode.ToString();
+            }
+        }
+        catch (Exception e)
+        {
+            _message = e.Message;
+        }
+    }
+
+    private async Task<List<AccountDto>> GetAccounts()
+    {
+        List<AccountDto> accountDtos = null;
+        try
+        {
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = new HttpMethod("GET");
+            httpRequestMessage.RequestUri = new Uri("http://localhost:6060/api/Account/Current");
+            httpRequestMessage.Headers.Add("Authorization", "Bearer " + UserToken.Jwt);
+
+            var response = await Http.SendAsync(httpRequestMessage);
+            var responseStatusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (responseStatusCode.ToString() == "OK")
+            {
+                accountDtos = JsonConvert.DeserializeObject<IEnumerable<AccountDto>>(responseBody).ToList();
+                _message = "Accounts updated successfuly";
+            }
+            else
+            {
+
+            }
+
+        }
+        catch (Exception e)
+
+        {
+            _message = e.Message;
+        }
+        return accountDtos;
+
+
+
+
+    }
+}
